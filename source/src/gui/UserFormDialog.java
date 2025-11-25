@@ -2,8 +2,13 @@ package gui;
 
 import javax.swing.*;
 import java.awt.*;
+import java.util.ArrayList;
+import java.util.List;
+
 import dao.UserDAO;
+import dao.ProductDAO;
 import model.User;
+import model.Product;
 
 public class UserFormDialog extends JDialog {
 
@@ -11,11 +16,15 @@ public class UserFormDialog extends JDialog {
     private JComboBox<String> tipoC;
     private JCheckBox iaBox, ciberBox, privBox;
     private JCheckBox ativoBox;
+
+    // NOVO -> lista para armazenar checkboxes dos produtos
+    private List<JCheckBox> produtosBoxes = new ArrayList<>();
+
     private User editing;
 
     public UserFormDialog(User u) {
         setModal(true);
-        setSize(420, 380);
+        setSize(480, 520);
         setLocationRelativeTo(null);
         editing = u;
         setTitle(editing == null ? "Cadastrar Usuário" : "Editar Usuário");
@@ -27,9 +36,7 @@ public class UserFormDialog extends JDialog {
         JPanel main = new JPanel(new BorderLayout());
         main.setBorder(BorderFactory.createEmptyBorder(15, 15, 15, 15));
 
-        // Painel do formulário
-        JPanel form = new JPanel();
-        form.setLayout(new GridBagLayout());
+        JPanel form = new JPanel(new GridBagLayout());
         GridBagConstraints c = new GridBagConstraints();
         c.insets = new Insets(6, 6, 6, 6);
         c.fill = GridBagConstraints.HORIZONTAL;
@@ -60,22 +67,36 @@ public class UserFormDialog extends JDialog {
         c.gridx = 1; form.add(tipoC, c);
         y++;
 
-        // Interesses título
+        // Título interesses
         c.gridx = 0; c.gridy = y; c.gridwidth = 2;
-        JLabel intTitle = new JLabel("Interesses (até 2):");
+        JLabel intTitle = new JLabel("Interesses :");
         intTitle.setFont(intTitle.getFont().deriveFont(Font.BOLD));
         form.add(intTitle, c);
         y++;
 
-        // Interesses checkboxes
-        JPanel interestsPanel = new JPanel(new FlowLayout(FlowLayout.LEFT, 10, 0));
+        // Painel de interesses
+        JPanel interestsPanel = new JPanel();
+        interestsPanel.setLayout(new GridLayout(0, 1, 5, 5));
+
+        // Interesses fixos
         iaBox = new JCheckBox("IA Responsável");
         ciberBox = new JCheckBox("Cibersegurança");
         privBox = new JCheckBox("Privacidade");
+
         interestsPanel.add(iaBox);
         interestsPanel.add(ciberBox);
         interestsPanel.add(privBox);
 
+        // ===== ADICIONAR PRODUTOS COMO CHECKBOX =====
+        List<Product> produtos = ProductDAO.findAll();
+
+        for (Product p : produtos) {
+            JCheckBox cb = new JCheckBox( p.getNome());
+            produtosBoxes.add(cb);
+            interestsPanel.add(cb);
+        }
+
+        // Adiciona o painel no form
         c.gridx = 0; c.gridy = y; c.gridwidth = 2;
         form.add(interestsPanel, c);
         y++;
@@ -99,17 +120,21 @@ public class UserFormDialog extends JDialog {
         main.add(buttons, BorderLayout.SOUTH);
         add(main);
 
-        // Preenche campos se estiver editando
+        // Preencher se estiver editando
         if (editing != null) {
             nomeF.setText(editing.getNome());
             idadeF.setText(String.valueOf(editing.getIdade()));
             emailF.setText(editing.getEmail());
             tipoC.setSelectedItem(editing.getTipo());
             ativoBox.setSelected(editing.isAtivo());
+
+            // Marcar os checkboxes fixos (SE você tiver isso no banco)
+            // aqui depois posso integrar 100% para você se mandar o UserDAO
         }
 
-        // Ação salvar
+        // ------ BOTÃO SALVAR ------
         save.addActionListener(e -> {
+
             String nome = nomeF.getText().trim();
             int idade = Integer.parseInt(idadeF.getText().trim());
             String email = emailF.getText().trim();
@@ -125,16 +150,26 @@ public class UserFormDialog extends JDialog {
             u.setTipo(tipo);
             u.setAtivo(ativo);
 
-            // Senha padrão para novos usuários
+            // senha padrão
             if (editing == null)
                 u.setSenhaPlain("usuario123");
 
-            UserDAO.saveOrUpdate(
-                u,
-                iaBox.isSelected() ? "IA" : null,
-                ciberBox.isSelected() ? "CIBER" : null,
-                privBox.isSelected() ? "PRIVACIDADE" : null
-            );
+            // interesses fixos
+            List<String> interesses = new ArrayList<>();
+
+            if (iaBox.isSelected()) interesses.add("IA");
+            if (ciberBox.isSelected()) interesses.add("CIBER");
+            if (privBox.isSelected()) interesses.add("PRIVACIDADE");
+
+            // produtos marcados
+            for (JCheckBox cb : produtosBoxes) {
+                if (cb.isSelected()) {
+                    interesses.add(cb.getText()); // "Produto: Nome"
+                }
+            }
+
+            // Salvar tudo
+            UserDAO.saveOrUpdate(u, interesses);
 
             dispose();
         });
