@@ -9,7 +9,7 @@ public class LoginFrame extends JFrame {
     private JTextField emailField;
     private JPasswordField passwordField;
     public LoginFrame() {
-        setTitle("Curadoria IA - Login");
+        setTitle("Curadoria - Login");
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setSize(400,220);
         setLocationRelativeTo(null);

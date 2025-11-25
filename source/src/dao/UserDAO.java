@@ -116,4 +116,26 @@ public class UserDAO {
         for (byte x: salt) sb.append(String.format("%02x", x));
         return sb.toString();
     }
+
+    public static void delete(int id) {
+        try (Connection c = DB.getConnection()) {
+            // Apaga interesses primeiro (por causa da FK)
+            PreparedStatement delInt = c.prepareStatement(
+                "DELETE FROM interesse_usuario WHERE usuario_id=?"
+            );
+            delInt.setInt(1, id);
+            delInt.executeUpdate();
+    
+            // Agora apaga o usuário
+            PreparedStatement ps = c.prepareStatement(
+                "DELETE FROM usuario WHERE id=?"
+            );
+            ps.setInt(1, id);
+            ps.executeUpdate();
+    
+        } catch (Exception ex) {
+            ex.printStackTrace();
+        }
+    }
+    
 }

@@ -29,6 +29,13 @@ CREATE TABLE IF NOT EXISTS recurso (
   FOREIGN KEY (usuario_id) REFERENCES usuario(id) ON DELETE CASCADE
 );
 
+CREATE TABLE product (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    nome VARCHAR(150) NOT NULL,
+    preco DECIMAL(10,2) NOT NULL,
+    estoque INT NOT NULL
+);
+
 -- Seed admin user (email: admin@local, senha: admin123)
 -- Uses SHA256(salt + password). Salt and hash below generated and inserted.
 INSERT INTO usuario (nome, idade, tipo, email, senha_hash, salt, ativo)

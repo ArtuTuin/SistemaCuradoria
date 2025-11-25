@@ -6,7 +6,7 @@ public class MainFrame extends JFrame {
     private User user;
     public MainFrame(User u) {
         this.user = u;
-        setTitle("Curadoria IA - Principal ("+u.getTipo()+")");
+        setTitle("Curadoria - Principal ("+u.getTipo()+")");
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setSize(800,600);
         setLocationRelativeTo(null);
